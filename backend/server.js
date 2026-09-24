@@ -7,7 +7,7 @@ import mongoose from 'mongoose'
 import crypto from 'node:crypto'
 import nodemailer from 'nodemailer'
 
-const app = express(); const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173').split(',').map((origin) => origin.trim()); app.use(cors({ origin: (origin, callback) => !origin || allowedOrigins.includes(origin) || ['http://localhost:5173', 'http://127.0.0.1:5173'].includes(origin) ? callback(null, true) : callback(new Error('Origin not allowed')) })); app.use(express.json())
+const app = express(); const allowedOrigins = new Set(['http://localhost:5173', 'http://127.0.0.1:5173', 'https://task-management-bice-iota.vercel.app', ...(process.env.CLIENT_URL || '').split(',').map((origin) => origin.trim()).filter(Boolean)]); app.use(cors({ origin: (origin, callback) => !origin || allowedOrigins.has(origin) ? callback(null, true) : callback(new Error('Origin not allowed')) })); app.use(express.json()); app.use((req, res, next) => { if (!req.path.startsWith('/api/') && /^\/(auth|users|invitations|tasks|reports|health)(\/|$)/.test(req.path)) req.url = `/api${req.url}`; next() })
 const PORT = process.env.PORT || 5000; const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-me'
 const users = []; const tasks = []; const invitations = []
 const userSchema = new mongoose.Schema({ name: String, email: { type: String, unique: true }, password: String, role: { type: String, enum: ['ADMIN', 'MANAGER', 'EMPLOYEE'], default: 'EMPLOYEE' }, active: { type: Boolean, default: true } }, { timestamps: true })
